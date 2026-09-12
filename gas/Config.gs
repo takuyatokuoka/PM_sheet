@@ -74,8 +74,8 @@ const MEMBER_SUMMARY_HEADERS = [
 ];
 const MEMBER_SUMMARY_COLUMN_WIDTHS = [120, 90, 130, 130, 110, 130, 150, 100, 120, 220];
 
-// 「ダッシュボード」シートの列幅（px）：A列・B列
-const DASHBOARD_COLUMN_WIDTHS = [140, 160];
+// 各ダッシュボードシートの列幅（px）：A〜F列（A/Bはサマリー欄、A〜Fは月別推移テーブルで使用）
+const DASHBOARD_COLUMN_WIDTHS = [140, 160, 110, 90, 90, 120];
 
 /**
  * 状況の選択肢

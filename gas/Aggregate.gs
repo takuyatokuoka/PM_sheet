@@ -199,8 +199,9 @@ function updateMemberSummary_(data) {
  * ダッシュボードシートを更新する：全体の売上・粗利益・利益率・案件数・要注意案件・メンバー数
  * 現状／上期／下期のいずれも、このロジックを共通で使う（渡す data を絞り込むだけ）
  */
-function updateDashboardSheet_(sheetName, title, periodLabel, data) {
+function updateDashboardSheet_(sheetName, title, periodLabel, data, months) {
   const sheet = getOrCreateSheet_(sheetName);
+  sheet.getCharts().forEach(function (chart) { sheet.removeChart(chart); });
   sheet.clear();
   sheet.clearFormats();
 
@@ -230,6 +231,112 @@ function updateDashboardSheet_(sheetName, title, periodLabel, data) {
   sheet.getRange(6, 2).setNumberFormat('0.0%'); // 利益率
 
   setColumnWidths_(sheet, DASHBOARD_COLUMN_WIDTHS);
+
+  if (months.length > 0) {
+    const tableStartRow = 11;
+    const monthly = aggregateByMonth_(data, months);
+
+    sheet.getRange(tableStartRow, 1).setValue('月別推移').setFontWeight('bold');
+    const tableHeaders = ['月', '売上', '粗利益', '利益率', '案件数', '要注意案件'];
+    const headerRow = tableStartRow + 1;
+    sheet.getRange(headerRow, 1, 1, tableHeaders.length).setValues([tableHeaders]).setFontWeight('bold');
+
+    const tableRows = monthly.map(function (m) {
+      return [m.label, m.revenue, m.grossProfit, m.margin, m.projectCount, m.atRiskCount];
+    });
+    const firstDataRow = headerRow + 1;
+    sheet.getRange(firstDataRow, 1, tableRows.length, tableHeaders.length).setValues(tableRows);
+    sheet.getRange(firstDataRow, 2, tableRows.length, 1).setNumberFormat('#,##0'); // 売上
+    sheet.getRange(firstDataRow, 3, tableRows.length, 1).setNumberFormat('#,##0'); // 粗利益
+    sheet.getRange(firstDataRow, 4, tableRows.length, 1).setNumberFormat('0.0%'); // 利益率
+
+    const monthRange = sheet.getRange(headerRow, 1, tableRows.length + 1, 1);
+    const chartConfigs = [
+      { col: 2, title: '月別売上推移', axisTitle: '売上', format: '#,##0', anchorRow: 2 },
+      { col: 3, title: '月別粗利益推移', axisTitle: '粗利益', format: '#,##0', anchorRow: 18 },
+      { col: 4, title: '月別利益率推移', axisTitle: '利益率', format: '0.0%', anchorRow: 34 },
+      { col: 5, title: '月別案件数推移', axisTitle: '案件数', format: '0', anchorRow: 50 },
+      { col: 6, title: '月別要注意案件数推移', axisTitle: '要注意案件数', format: '0', anchorRow: 66 },
+    ];
+
+    chartConfigs.forEach(function (cfg) {
+      const metricRange = sheet.getRange(headerRow, cfg.col, tableRows.length + 1, 1);
+      const chart = sheet.newChart()
+        .setChartType(Charts.ChartType.LINE)
+        .addRange(monthRange)
+        .addRange(metricRange)
+        .setPosition(cfg.anchorRow, 8, 0, 0)
+        .setOption('title', cfg.title)
+        .setOption('legend', { position: 'none' })
+        .setOption('hAxis', { title: '月' })
+        .setOption('vAxis', { title: cfg.axisTitle, format: cfg.format })
+        .setOption('width', 480)
+        .setOption('height', 280)
+        .build();
+      sheet.insertChart(chart);
+    });
+  }
+}
+
+/**
+ * 開始日〜終了日までの月を1ヶ月刻みで列挙する（両端の月を含む）
+ */
+function getMonthsInRange_(start, end) {
+  const months = [];
+  let year = start.getFullYear();
+  let month = start.getMonth() + 1; // 1〜12
+  const endYear = end.getFullYear();
+  const endMonth = end.getMonth() + 1;
+
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    months.push({ year: year, month: month, label: year + '/' + (month < 10 ? '0' + month : month) });
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+  return months;
+}
+
+/**
+ * データ中の請求日の最小月〜最大月を列挙する（現状ダッシュボード用）。
+ * 有効な請求日が1件もなければ空配列を返す。
+ */
+function getAllMonthsFromData_(data) {
+  const validDates = data
+    .map(function (p) { return p.invoiceDate; })
+    .filter(function (d) { return d instanceof Date && !isNaN(d.getTime()); });
+  if (validDates.length === 0) return [];
+
+  const times = validDates.map(function (d) { return d.getTime(); });
+  const minDate = new Date(Math.min.apply(null, times));
+  const maxDate = new Date(Math.max.apply(null, times));
+  return getMonthsInRange_(minDate, maxDate);
+}
+
+/**
+ * 指定した月ごとに、売上・粗利益・利益率・案件数・要注意案件数を集計する
+ */
+function aggregateByMonth_(data, months) {
+  return months.map(function (m) {
+    const monthData = data.filter(function (p) {
+      return p.invoiceDate instanceof Date && !isNaN(p.invoiceDate.getTime()) &&
+        p.invoiceDate.getFullYear() === m.year &&
+        (p.invoiceDate.getMonth() + 1) === m.month;
+    });
+    const revenue = monthData.reduce(function (s, p) { return s + p.revenue; }, 0);
+    const grossProfit = monthData.reduce(function (s, p) { return s + p.grossProfit; }, 0);
+    const margin = revenue !== 0 ? grossProfit / revenue : 0;
+    return {
+      label: m.label,
+      revenue: revenue,
+      grossProfit: grossProfit,
+      margin: margin,
+      projectCount: monthData.length,
+      atRiskCount: monthData.filter(isAtRiskProject_).length,
+    };
+  });
 }
 
 /**

@@ -62,18 +62,26 @@ function updateAllSummaries_() {
   const h1Data = data.filter(function (p) { return isDateInRange_(p.invoiceDate, ranges.h1.start, ranges.h1.end); });
   const h2Data = data.filter(function (p) { return isDateInRange_(p.invoiceDate, ranges.h2.start, ranges.h2.end); });
 
-  updateDashboardSheet_(SHEET_NAMES.DASHBOARD_CURRENT, '全体サマリー（現状・全期間）', '全期間（請求日を問わずすべての案件）', data);
+  updateDashboardSheet_(
+    SHEET_NAMES.DASHBOARD_CURRENT,
+    '全体サマリー（現状・全期間）',
+    '全期間（請求日を問わずすべての案件）',
+    data,
+    getAllMonthsFromData_(data)
+  );
   updateDashboardSheet_(
     SHEET_NAMES.DASHBOARD_H1,
     '上期サマリー',
     ranges.fiscalYearLabel + ' 上期（' + formatDate_(ranges.h1.start) + '〜' + formatDate_(ranges.h1.end) + '）',
-    h1Data
+    h1Data,
+    getMonthsInRange_(ranges.h1.start, ranges.h1.end)
   );
   updateDashboardSheet_(
     SHEET_NAMES.DASHBOARD_H2,
     '下期サマリー',
     ranges.fiscalYearLabel + ' 下期（' + formatDate_(ranges.h2.start) + '〜' + formatDate_(ranges.h2.end) + '）',
-    h2Data
+    h2Data,
+    getMonthsInRange_(ranges.h2.start, ranges.h2.end)
   );
 }
 
