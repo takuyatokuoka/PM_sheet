@@ -42,10 +42,34 @@ const COL = {
 // 案件入力シートにあらかじめ数式・入力規則を用意しておく行数
 const INPUT_TEMPLATE_ROWS = 200;
 
+// 「案件入力」シートの列幅（px）。INPUT_HEADERS と同じ順番・同じ数で対応させる
+const INPUT_COLUMN_WIDTHS = [90, 220, 110, 100, 150, 110, 100, 140, 100, 170, 110, 110, 90, 100, 240];
+
 /**
  * 「担当者マスタ」シートのヘッダー
  */
 const MEMBER_HEADERS = ['担当者名', '月間稼働可能日数'];
+
+// 「担当者マスタ」シートの列幅（px）
+const MEMBER_COLUMN_WIDTHS = [150, 160];
+
+/**
+ * 「案件別集計」シートのヘッダーと列幅（px）
+ */
+const PROJECT_SUMMARY_HEADERS = ['案件No.', '案件名', '担当者', '状況', '売上', '原価合計', '粗利益', '利益率', '要注意'];
+const PROJECT_SUMMARY_COLUMN_WIDTHS = [90, 220, 110, 100, 120, 120, 120, 90, 120];
+
+/**
+ * 「担当者別集計」シートのヘッダーと列幅（px）
+ */
+const MEMBER_SUMMARY_HEADERS = [
+  '担当者', '案件数', '売上合計', '粗利益合計', '平均利益率',
+  '稼働日数合計', '月間稼働可能日数', '稼働率', '要注意案件数', '状態',
+];
+const MEMBER_SUMMARY_COLUMN_WIDTHS = [120, 90, 130, 130, 110, 130, 150, 100, 120, 220];
+
+// 「ダッシュボード」シートの列幅（px）：A列・B列
+const DASHBOARD_COLUMN_WIDTHS = [140, 160];
 
 /**
  * 状況の選択肢

@@ -84,3 +84,12 @@ function getOrCreateSheet_(name) {
   }
   return sheet;
 }
+
+/**
+ * 列ごとに幅（px）を指定して見やすく広げる
+ */
+function setColumnWidths_(sheet, widths) {
+  widths.forEach(function (width, i) {
+    sheet.setColumnWidth(i + 1, width);
+  });
+}

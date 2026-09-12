@@ -77,7 +77,7 @@ function updateProjectSummary_(data) {
   sheet.clear();
   sheet.clearFormats();
 
-  const headers = ['案件No.', '案件名', '担当者', '状況', '売上', '原価合計', '粗利益', '利益率', '要注意'];
+  const headers = PROJECT_SUMMARY_HEADERS;
   sheet.getRange(1, 1, 1, headers.length)
     .setValues([headers])
     .setFontWeight('bold')
@@ -123,7 +123,7 @@ function updateProjectSummary_(data) {
     .build();
   sheet.setConditionalFormatRules([riskRule]);
 
-  sheet.autoResizeColumns(1, headers.length);
+  setColumnWidths_(sheet, PROJECT_SUMMARY_COLUMN_WIDTHS);
 }
 
 /**
@@ -152,10 +152,7 @@ function updateMemberSummary_(data) {
   sheet.clear();
   sheet.clearFormats();
 
-  const headers = [
-    '担当者', '案件数', '売上合計', '粗利益合計', '平均利益率',
-    '稼働日数合計', '月間稼働可能日数', '稼働率', '要注意案件数', '状態',
-  ];
+  const headers = MEMBER_SUMMARY_HEADERS;
   sheet.getRange(1, 1, 1, headers.length)
     .setValues([headers])
     .setFontWeight('bold')
@@ -195,7 +192,7 @@ function updateMemberSummary_(data) {
     .build();
   sheet.setConditionalFormatRules([overloadRule]);
 
-  sheet.autoResizeColumns(1, headers.length);
+  setColumnWidths_(sheet, MEMBER_SUMMARY_COLUMN_WIDTHS);
 }
 
 /**
@@ -229,5 +226,5 @@ function updateDashboard_(data) {
   sheet.getRange(5, 2).setNumberFormat('#,##0'); // 粗利益
   sheet.getRange(6, 2).setNumberFormat('0.0%'); // 利益率
 
-  sheet.autoResizeColumns(1, 2);
+  setColumnWidths_(sheet, DASHBOARD_COLUMN_WIDTHS);
 }

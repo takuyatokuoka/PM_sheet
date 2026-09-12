@@ -57,7 +57,7 @@ function setupInputSheet() {
     .build();
   sheet.setConditionalFormatRules([lowMarginRule]);
 
-  sheet.autoResizeColumns(1, INPUT_HEADERS.length);
+  setColumnWidths_(sheet, INPUT_COLUMN_WIDTHS);
 }
 
 /**
@@ -75,7 +75,7 @@ function setupMemberSheet() {
     .setBackground(HEADER_BACKGROUND)
     .setFontColor(HEADER_FONT_COLOR);
   sheet.setFrozenRows(1);
-  sheet.autoResizeColumns(1, MEMBER_HEADERS.length);
+  setColumnWidths_(sheet, MEMBER_COLUMN_WIDTHS);
 }
 
 /**
