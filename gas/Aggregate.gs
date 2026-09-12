@@ -3,6 +3,12 @@
  */
 function getInputData_() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.INPUT);
+  if (!sheet) {
+    throw new Error(
+      '「' + SHEET_NAMES.INPUT + '」シートが見つかりません。\n' +
+      '先にメニューの「案件管理」→「① 初期セットアップ（シート作成）」を実行してください。'
+    );
+  }
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
 
@@ -49,7 +55,7 @@ function isAtRiskProject_(project) {
  * 「担当者マスタ」から、担当者名 → 月間稼働可能日数 のマップを作る
  */
 function getMemberCapacityMap_() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.MEMBERS);
+  const sheet = getOrCreateSheet_(SHEET_NAMES.MEMBERS);
   const lastRow = sheet.getLastRow();
   const map = {};
   if (lastRow < 2) return map;
@@ -67,7 +73,7 @@ function getMemberCapacityMap_() {
  * 「案件別集計」シートを更新する：案件ごとの状況・利益率と、全体の合計・平均利益率
  */
 function updateProjectSummary_(data) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.PROJECT_SUMMARY);
+  const sheet = getOrCreateSheet_(SHEET_NAMES.PROJECT_SUMMARY);
   sheet.clear();
   sheet.clearFormats();
 
@@ -142,7 +148,7 @@ function updateMemberSummary_(data) {
     if (isAtRiskProject_(p)) o.atRisk += 1;
   });
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.MEMBER_SUMMARY);
+  const sheet = getOrCreateSheet_(SHEET_NAMES.MEMBER_SUMMARY);
   sheet.clear();
   sheet.clearFormats();
 
@@ -196,7 +202,7 @@ function updateMemberSummary_(data) {
  * 「ダッシュボード」シートを更新する：全体の売上・粗利益・利益率・案件数・要注意案件・メンバー数
  */
 function updateDashboard_(data) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.DASHBOARD);
+  const sheet = getOrCreateSheet_(SHEET_NAMES.DASHBOARD);
   sheet.clear();
   sheet.clearFormats();
 

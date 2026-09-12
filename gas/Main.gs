@@ -12,27 +12,47 @@ function onOpen() {
 
 /**
  * 初期セットアップ：必要なシートをすべて作成し、初回の集計を行う
+ * （メニューから呼ばれるエントリーポイント。エラー時は必ずダイアログで内容を表示する）
  */
 function setupAll() {
-  setupInputSheet();
-  setupMemberSheet();
-  setupProjectSummarySheet();
-  setupMemberSummarySheet();
-  setupDashboardSheet();
-  updateAllSummaries();
-  deleteDefaultSheet_();
+  try {
+    setupInputSheet();
+    setupMemberSheet();
+    setupProjectSummarySheet();
+    setupMemberSummarySheet();
+    setupDashboardSheet();
+    updateAllSummaries_();
+    deleteDefaultSheet_();
 
-  SpreadsheetApp.getUi().alert(
-    'セットアップが完了しました。\n' +
-    '「' + SHEET_NAMES.INPUT + '」シートに案件データを入力し、\n' +
-    'メニューの「案件管理」→「② 集計を更新」を実行してください。'
-  );
+    SpreadsheetApp.getUi().alert(
+      'セットアップが完了しました。\n' +
+      '「' + SHEET_NAMES.INPUT + '」シートに案件データを入力し、\n' +
+      'メニューの「案件管理」→「② 集計を更新」を実行してください。'
+    );
+  } catch (e) {
+    SpreadsheetApp.getUi().alert('セットアップでエラーが発生しました：\n' + e.message);
+    throw e;
+  }
 }
 
 /**
  * 案件入力データをもとに、案件別集計・担当者別集計・ダッシュボードを再計算する
+ * （メニューから呼ばれるエントリーポイント。成功/エラーを必ずダイアログで表示する）
  */
 function updateAllSummaries() {
+  try {
+    updateAllSummaries_();
+    SpreadsheetApp.getUi().alert('集計を更新しました。');
+  } catch (e) {
+    SpreadsheetApp.getUi().alert('集計の更新でエラーが発生しました：\n' + e.message);
+    throw e;
+  }
+}
+
+/**
+ * 集計処理の本体（setupAll からも呼ばれるため、こちらはダイアログを出さない）
+ */
+function updateAllSummaries_() {
   const data = getInputData_();
   updateProjectSummary_(data);
   updateMemberSummary_(data);
