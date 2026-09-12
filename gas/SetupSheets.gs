@@ -93,8 +93,11 @@ function setupMemberSummarySheet() {
 }
 
 /**
- * 「ダッシュボード」シートの器を用意する（中身は updateDashboard_ で書き込む）
+ * 「現状ダッシュボード」「上期ダッシュボード」「下期ダッシュボード」の器を用意する
+ * （中身は updateDashboardSheet_ で書き込む）
  */
-function setupDashboardSheet() {
-  getOrCreateSheet_(SHEET_NAMES.DASHBOARD);
+function setupDashboardSheets() {
+  getOrCreateSheet_(SHEET_NAMES.DASHBOARD_CURRENT);
+  getOrCreateSheet_(SHEET_NAMES.DASHBOARD_H1);
+  getOrCreateSheet_(SHEET_NAMES.DASHBOARD_H2);
 }

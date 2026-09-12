@@ -16,11 +16,12 @@ function onOpen() {
  */
 function setupAll() {
   try {
+    migrateLegacyDashboardSheet_();
     setupInputSheet();
     setupMemberSheet();
     setupProjectSummarySheet();
     setupMemberSummarySheet();
-    setupDashboardSheet();
+    setupDashboardSheets();
     updateAllSummaries_();
     deleteDefaultSheet_();
 
@@ -56,7 +57,24 @@ function updateAllSummaries_() {
   const data = getInputData_();
   updateProjectSummary_(data);
   updateMemberSummary_(data);
-  updateDashboard_(data);
+
+  const ranges = getCurrentFiscalHalfRanges_();
+  const h1Data = data.filter(function (p) { return isDateInRange_(p.invoiceDate, ranges.h1.start, ranges.h1.end); });
+  const h2Data = data.filter(function (p) { return isDateInRange_(p.invoiceDate, ranges.h2.start, ranges.h2.end); });
+
+  updateDashboardSheet_(SHEET_NAMES.DASHBOARD_CURRENT, '全体サマリー（現状・全期間）', '全期間（請求日を問わずすべての案件）', data);
+  updateDashboardSheet_(
+    SHEET_NAMES.DASHBOARD_H1,
+    '上期サマリー',
+    ranges.fiscalYearLabel + ' 上期（' + formatDate_(ranges.h1.start) + '〜' + formatDate_(ranges.h1.end) + '）',
+    h1Data
+  );
+  updateDashboardSheet_(
+    SHEET_NAMES.DASHBOARD_H2,
+    '下期サマリー',
+    ranges.fiscalYearLabel + ' 下期（' + formatDate_(ranges.h2.start) + '〜' + formatDate_(ranges.h2.end) + '）',
+    h2Data
+  );
 }
 
 /**
@@ -71,6 +89,18 @@ function deleteDefaultSheet_() {
       ss.deleteSheet(sheet);
     }
   });
+}
+
+/**
+ * 旧バージョンで作られた「ダッシュボード」シートが残っている場合、
+ * 「現状ダッシュボード」へリネームして引き継ぐ
+ */
+function migrateLegacyDashboardSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const legacy = ss.getSheetByName('ダッシュボード');
+  if (legacy && !ss.getSheetByName(SHEET_NAMES.DASHBOARD_CURRENT)) {
+    legacy.setName(SHEET_NAMES.DASHBOARD_CURRENT);
+  }
 }
 
 /**

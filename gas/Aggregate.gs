@@ -196,10 +196,11 @@ function updateMemberSummary_(data) {
 }
 
 /**
- * 「ダッシュボード」シートを更新する：全体の売上・粗利益・利益率・案件数・要注意案件・メンバー数
+ * ダッシュボードシートを更新する：全体の売上・粗利益・利益率・案件数・要注意案件・メンバー数
+ * 現状／上期／下期のいずれも、このロジックを共通で使う（渡す data を絞り込むだけ）
  */
-function updateDashboard_(data) {
-  const sheet = getOrCreateSheet_(SHEET_NAMES.DASHBOARD);
+function updateDashboardSheet_(sheetName, title, periodLabel, data) {
+  const sheet = getOrCreateSheet_(sheetName);
   sheet.clear();
   sheet.clearFormats();
 
@@ -210,9 +211,11 @@ function updateDashboard_(data) {
   const atRiskCount = data.filter(isAtRiskProject_).length;
   const memberCount = new Set(data.map(function (p) { return p.owner; }).filter(function (o) { return o; })).size;
 
-  sheet.getRange('A1').setValue('全体サマリー').setFontWeight('bold').setFontSize(14);
+  sheet.getRange('A1').setValue(title).setFontWeight('bold').setFontSize(14);
   sheet.getRange('A2').setValue('更新日時');
   sheet.getRange('B2').setValue(new Date()).setNumberFormat('yyyy/mm/dd hh:mm');
+  sheet.getRange('A3').setValue('対象期間');
+  sheet.getRange('B3').setValue(periodLabel);
 
   const labels = ['売上', '粗利益', '利益率', '案件数', '要注意案件', 'メンバー'];
   const values = [totalRevenue, totalGrossProfit, avgMargin, projectCount, atRiskCount, memberCount];
@@ -227,4 +230,45 @@ function updateDashboard_(data) {
   sheet.getRange(6, 2).setNumberFormat('0.0%'); // 利益率
 
   setColumnWidths_(sheet, DASHBOARD_COLUMN_WIDTHS);
+}
+
+/**
+ * 今日時点の事業年度における、上期・下期の開始日・終了日を求める
+ * （FISCAL_YEAR_START_MONTH を基準に計算する）
+ */
+function getCurrentFiscalHalfRanges_() {
+  const startMonth = FISCAL_YEAR_START_MONTH; // 1〜12
+  const today = new Date();
+  const month = today.getMonth() + 1; // 1〜12
+
+  let fiscalYearStartYear = today.getFullYear();
+  if (month < startMonth) {
+    fiscalYearStartYear = fiscalYearStartYear - 1;
+  }
+
+  const h1Start = new Date(fiscalYearStartYear, startMonth - 1, 1);
+  const h1End = new Date(fiscalYearStartYear, startMonth - 1 + 6, 0);
+  const h2Start = new Date(fiscalYearStartYear, startMonth - 1 + 6, 1);
+  const h2End = new Date(fiscalYearStartYear + 1, startMonth - 1, 0);
+
+  return {
+    fiscalYearLabel: fiscalYearStartYear + '年度',
+    h1: { start: h1Start, end: h1End },
+    h2: { start: h2Start, end: h2End },
+  };
+}
+
+/**
+ * 日付が範囲内（両端含む）かどうかを判定する。日付でない場合は false。
+ */
+function isDateInRange_(date, start, end) {
+  if (!(date instanceof Date) || isNaN(date.getTime())) return false;
+  return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+}
+
+/**
+ * 日付を yyyy/MM/dd 形式の文字列にする
+ */
+function formatDate_(date) {
+  return Utilities.formatDate(date, 'Asia/Tokyo', 'yyyy/MM/dd');
 }

@@ -6,8 +6,14 @@ const SHEET_NAMES = {
   MEMBERS: '担当者マスタ',
   PROJECT_SUMMARY: '案件別集計',
   MEMBER_SUMMARY: '担当者別集計',
-  DASHBOARD: 'ダッシュボード',
+  DASHBOARD_CURRENT: '現状ダッシュボード',
+  DASHBOARD_H1: '上期ダッシュボード',
+  DASHBOARD_H2: '下期ダッシュボード',
 };
+
+// 事業年度の開始月（1〜12）。例：4月始まり（3月決算）なら 4。
+// 上期＝開始月から6ヶ月間、下期＝その次の6ヶ月間として扱う。
+const FISCAL_YEAR_START_MONTH = 4;
 
 /**
  * 「案件入力」シートのヘッダーと列番号（1始まり）
